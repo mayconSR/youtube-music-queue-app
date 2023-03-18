@@ -8,7 +8,7 @@ const SubmitLink = () => {
     e.preventDefault();
 
     // Link da api
-    const apiUrl = process.env.REACT_APP_API_URL;
+    const apiUrl = process.env.API_URL;
 
     try {
       const response = await fetch(apiUrl, {
