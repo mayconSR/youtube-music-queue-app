@@ -11,7 +11,7 @@ const VideoPlayer = () => {
 
   const fetchMusicLinks = async () => {
     // Link da api
-    const apiUrl = process.env.API_URL;
+    const apiUrl = 'https://youtube-music-queue-api.vercel.app/api/music';
 
     try {
       const response = await fetch(apiUrl);
