@@ -1,53 +1,97 @@
 import React, { useState, useEffect } from 'react';
+import { google } from 'googleapis';
 
 const VideoPlayer = () => {
-  const [videoLinks, setVideoLinks] = useState([]);
+  const [videoIds, setVideoIds] = useState([]);
   const [currentVideoIndex, setCurrentVideoIndex] = useState(0);
+  const [player, setPlayer] = useState(null);
 
   useEffect(() => {
-    fetchMusicLinks();
+    fetchVideoIds();
   }, []);
 
-  const fetchMusicLinks = async () => {
-    // Link da api
+  const fetchVideoIds = async () => {
     const apiUrl = 'https://youtube-music-queue-api.vercel.app/api/music';
 
     try {
       const response = await fetch(apiUrl);
       const links = await response.json();
-      setVideoLinks(links);
+
+      const youtube = google.youtube({
+        version: 'v3',
+        auth: 'YOUR_API_KEY_HERE' // Adicione a sua chave de API do Google aqui
+      });
+
+      const ids = await Promise.all(
+        links.map(async (link) => {
+          if (isValidYouTubeLink(link)) {
+            const id = await getYoutubeVideoId(youtube, link);
+            return id;
+          }
+        })
+      );
+
+      setVideoIds(ids.filter((id) => id != null));
     } catch (error) {
-      console.error('Erro ao buscar links de música:', error);
+      console.error('Erro ao buscar IDs de vídeo:', error);
     }
+  };
+
+  const getYoutubeVideoId = async (youtube, url) => {
+    const videoId = url.split('v=')[1];
+    const ampersandPosition = videoId.indexOf('&');
+    if (ampersandPosition !== -1) {
+      videoId = videoId.substring(0, ampersandPosition);
+    }
+
+    try {
+      const { data } = await youtube.videos.list({
+        part: 'player',
+        id: videoId
+      });
+
+      if (data.items.length > 0) {
+        return videoId;
+      } else {
+        console.error(`O vídeo com ID ${videoId} não pôde ser encontrado.`);
+        return null;
+      }
+    } catch (error) {
+      console.error(`Erro ao buscar o vídeo com ID ${videoId}:`, error);
+      return null;
+    }
+  };
+
+  const isValidYouTubeLink = (url) => {
+    const regex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
+    return url.match(regex);
   };
 
   const onPlayerReady = (event) => {
-    event.target.playVideo();
+    setPlayer(event.target);
   };
 
-  const onPlayerStateChange = (event) => {
-    if (event.data === 0) {
-      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoLinks.length);
-    }
+  const onVideoEnd = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoIds.length);
   };
+
+  const skipVideo = () => {
+    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoIds.length);
+  };
+
+  useEffect(() => {
+    if (player) {
+      player.loadVideoById(videoIds[currentVideoIndex]);
+    }
+  }, [player, videoIds, currentVideoIndex]);
 
   return (
     <div>
       <h1>Player de Música do YouTube</h1>
-      {videoLinks.length > 0 ? (
+      {videoIds.length > 0 ? (
         <div>
-          <iframe
-            title="YouTube Player"
-            width="560"
-            height="315"
-            src={`https://www.youtube.com/embed/${videoLinks[currentVideoIndex]}?autoplay=1&origin=https://youtube-music-queue-app.vercel.app`}
-            allowFullScreen
-            frameBorder="0"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-            onLoad={onPlayerReady}
-            onStateChange={onPlayerStateChange}
-          />
-          <button onClick={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoLinks.length)}>Pular vídeo</button>
+          <div id="player" />
+          <button onClick={skipVideo}>Pular vídeo</button>
         </div>
       ) : (
         <p>Nenhum vídeo na lista.</p>
