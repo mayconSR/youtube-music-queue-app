@@ -7,8 +7,8 @@ const SubmitLink = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // Link da api
-    const apiUrl = process.env.API_URL;
+    // URL da API
+    const apiUrl = 'https://youtube-music-queue-api.vercel.app/api/music';
 
     try {
       const response = await fetch(apiUrl, {
