@@ -33,6 +33,7 @@ const VideoPlayer = () => {
   const videoOpts = {
     playerVars: {
       autoplay: true,
+      origin: 'https://youtube-music-queue-app.vercel.app/player'
     },
   };
 
