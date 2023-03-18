@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import YouTube from 'react-youtube';
 
 const VideoPlayer = () => {
   const [videoLinks, setVideoLinks] = useState([]);
@@ -22,19 +21,14 @@ const VideoPlayer = () => {
     }
   };
 
-  const onVideoEnd = () => {
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoLinks.length);
+  const onPlayerReady = (event) => {
+    event.target.playVideo();
   };
 
-  const skipVideo = () => {
-    setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoLinks.length);
-  };
-
-  const videoOpts = {
-    playerVars: {
-      autoplay: true,
-      origin: 'https://youtube-music-queue-app.vercel.app'
-    },
+  const onPlayerStateChange = (event) => {
+    if (event.data === 0) {
+      setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoLinks.length);
+    }
   };
 
   return (
@@ -42,12 +36,18 @@ const VideoPlayer = () => {
       <h1>Player de Música do YouTube</h1>
       {videoLinks.length > 0 ? (
         <div>
-          <YouTube
-            videoId={videoLinks[currentVideoIndex]}
-            opts={videoOpts}
-            onEnd={onVideoEnd}
+          <iframe
+            title="YouTube Player"
+            width="560"
+            height="315"
+            src={`https://www.youtube.com/embed/${videoLinks[currentVideoIndex]}?autoplay=1&origin=https://youtube-music-queue-app.vercel.app`}
+            allowFullScreen
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            onLoad={onPlayerReady}
+            onStateChange={onPlayerStateChange}
           />
-          <button onClick={skipVideo}>Pular vídeo</button>
+          <button onClick={() => setCurrentVideoIndex((prevIndex) => (prevIndex + 1) % videoLinks.length)}>Pular vídeo</button>
         </div>
       ) : (
         <p>Nenhum vídeo na lista.</p>
