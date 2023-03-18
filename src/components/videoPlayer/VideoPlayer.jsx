@@ -32,7 +32,7 @@ const VideoPlayer = () => {
 
   const videoOpts = {
     playerVars: {
-      autoplay: 1,
+      autoplay: true,
     },
   };
 
