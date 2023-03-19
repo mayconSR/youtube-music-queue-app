@@ -19,7 +19,7 @@ const VideoPlayer = () => {
 
       const youtube = google.youtube({
         version: 'v3',
-        auth: process.env.YOUTUBE_KEY // api-key do youtube
+        auth: process.env.REACT_APP_YOUTUBE_API_KEY
       });
 
       const ids = await Promise.all(
