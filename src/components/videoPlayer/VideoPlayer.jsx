@@ -19,7 +19,7 @@ const VideoPlayer = () => {
 
       const youtube = google.youtube({
         version: 'v3',
-        auth: 'AIzaSyDaS8g-2H5qQrbwZK78RT_wksW0mtonicU'
+        auth: process.env.YOUTUBE_KEY
       });
 
       const ids = await Promise.all(
