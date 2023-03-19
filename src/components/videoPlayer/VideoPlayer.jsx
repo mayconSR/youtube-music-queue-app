@@ -19,7 +19,7 @@ const VideoPlayer = () => {
 
       const youtube = google.youtube({
         version: 'v3',
-        auth: 'YOUR_API_KEY_HERE' // Adicione a sua chave de API do Google aqui
+        auth: process.env.YOUTUBE_KEY 
       });
 
       const ids = await Promise.all(
