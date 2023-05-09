@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { google } from 'googleapis';
+import YouTube from 'react-youtube';
 
 const VideoPlayer = () => {
   const [videoIds, setVideoIds] = useState([]);
@@ -12,16 +12,16 @@ const VideoPlayer = () => {
 
   const fetchVideoIds = async () => {
     const apiUrl = 'https://youtube-music-queue-api.vercel.app/api/music';
-
+  
     try {
       const response = await fetch(apiUrl);
       const links = await response.json();
-
+  
       const youtube = google.youtube({
         version: 'v3',
-        auth: 'AIzaSyDaS8g-2H5qQrbwZK78RT_wksW0mtonicU'
+        auth: import.meta.env.VITE_APP_YOUTUBE_KEY
       });
-
+  
       const ids = await Promise.all(
         links.map(async (link) => {
           if (isValidYouTubeLink(link)) {
@@ -30,26 +30,26 @@ const VideoPlayer = () => {
           }
         })
       );
-
+  
       setVideoIds(ids.filter((id) => id != null));
     } catch (error) {
       console.error('Erro ao buscar IDs de vídeo:', error);
     }
   };
-
+  
   const getYoutubeVideoId = async (youtube, url) => {
     let videoId = url.split('v=')[1];
     const ampersandPosition = videoId.indexOf('&');
     if (ampersandPosition !== -1) {
       videoId = videoId.substring(0, ampersandPosition);
     }
-
+  
     try {
       const { data } = await youtube.videos.list({
         part: 'player',
         id: videoId
       });
-
+  
       if (data.items.length > 0) {
         return videoId;
       } else {
@@ -61,7 +61,7 @@ const VideoPlayer = () => {
       return null;
     }
   };
-
+  
   const isValidYouTubeLink = (url) => {
     const regex = /^(https?\:\/\/)?(www\.)?(youtube\.com|youtu\.?be)\/.+$/;
     return url.match(regex);
@@ -90,7 +90,18 @@ const VideoPlayer = () => {
       <h1>Player de Música do YouTube</h1>
       {videoIds.length > 0 ? (
         <div>
-          <div id="player" />
+          <YouTube
+            videoId={videoIds[currentVideoIndex]}
+            opts={{
+              height: '390',
+              width: '640',
+              playerVars: {
+                autoplay: 1,
+              },
+            }}
+            onReady={onPlayerReady}
+            onEnd={onVideoEnd}
+          />
           <button onClick={skipVideo}>Pular vídeo</button>
         </div>
       ) : (
